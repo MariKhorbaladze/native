@@ -23,7 +23,7 @@ const MyMarketApp = () => {
         },
         timeout: 10000
       });
-
+      
       if (response.data?.data?.items) {
         setProducts(response.data.data.items);
       } else {
