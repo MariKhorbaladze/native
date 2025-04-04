@@ -23,7 +23,6 @@ const ProductList = () => {
       
       console.log('მოთხოვნის დაწყება...');
       
-      // ყველა შესაძლო endpoint-ის მასივი, რომელსაც ვცდით
       const endpoints = [
         {
           url: 'https://api.mymarket.ge/api/ka/products',
@@ -54,7 +53,6 @@ const ProductList = () => {
         }
       ];
       
-      // ვცადოთ თითოეული endpoint
       let response;
       let endpointIndex = 0;
       let success = false;
@@ -89,17 +87,14 @@ const ProductList = () => {
       
       console.log('სტატუსი კოდი:', response.status);
       
-      // ჯერ ტექსტურ ფორმატში დავაბრუნოთ პასუხი
       const responseText = await response.text();
       
-      // შევამოწმოთ API პასუხის მოცულობა ლოგისთვის
       if (responseText.length > 1000) {
         console.log('API პასუხი (ტექსტური, პირველი 1000 სიმბოლო):', responseText.substring(0, 1000) + '...');
       } else {
         console.log('API პასუხი (ტექსტური):', responseText);
       }
       
-      // შემდეგ ვცადოთ მისი JSON-ად პარსინგი
       let responseData;
       try {
         responseData = JSON.parse(responseText);
@@ -114,27 +109,21 @@ const ProductList = () => {
       
       setApiResponse(responseData);
       
-      // შევამოწმოთ რა ტიპის პასუხია და ვნახოთ მისი სტრუქტურა
       console.log('პასუხის ტიპი:', typeof responseData);
       
-      // ვცადოთ პროდუქტების მოძებნა API პასუხის სხვადასხვა ადგილას
       let foundProducts = [];
       
-      // დავითვალოთ API პასუხის ზედა დონის ველები
       const topLevelKeys = Object.keys(responseData || {});
       console.log('ზედა დონის გასაღებები:', topLevelKeys);
       
       if (responseData && typeof responseData === 'object') {
-        // შევამოწმოთ ყველა ველი, რომელიც შეიძლება შეიცავდეს პროდუქტების მასივს
         for (const key of topLevelKeys) {
           if (Array.isArray(responseData[key])) {
             console.log(`ნაპოვნია მასივი ველში "${key}" (${responseData[key].length} ელემენტი)`);
             
-            // შევამოწმოთ პირველი ელემენტი (თუ არსებობს)
             if (responseData[key].length > 0) {
               console.log(`პირველი ელემენტის ველები:`, Object.keys(responseData[key][0]));
               
-              // mymarket.ge-ს კონკრეტული ველების შემოწმება
               const isProductArray = responseData[key][0] && (
                 responseData[key][0].title || 
                 responseData[key][0].name || 
@@ -153,18 +142,15 @@ const ProductList = () => {
               }
             }
           } else if (responseData[key] && typeof responseData[key] === 'object') {
-            // შევამოწმოთ ჩადგმული ობიექტებიც
             const nestedKeys = Object.keys(responseData[key]);
             console.log(`ჩადგმული ობიექტი ველში "${key}", გასაღებები:`, nestedKeys);
             
-            // პირდაპირ შევამოწმოთ data.products მყმარკეტისთვის
             if (key === 'data' && responseData[key].products && Array.isArray(responseData[key].products)) {
               console.log(`ნაპოვნია პროდუქტები data.products ველში (${responseData[key].products.length} ელემენტი)`);
               foundProducts = responseData[key].products;
               break;
             }
             
-            // შევამოწმოთ 'result' ველიც, რომელსაც ხშირად იყენებს mymarket.ge
             if (key === 'result' && responseData[key].products && Array.isArray(responseData[key].products)) {
               console.log(`ნაპოვნია პროდუქტები result.products ველში (${responseData[key].products.length} ელემენტი)`);
               foundProducts = responseData[key].products;
@@ -178,7 +164,6 @@ const ProductList = () => {
                 if (responseData[key][nestedKey].length > 0) {
                   console.log(`პირველი ელემენტის ველები:`, Object.keys(responseData[key][nestedKey][0] || {}));
                   
-                  // mymarket.ge-ს კონკრეტული ველების შემოწმება
                   const isProductArray = responseData[key][nestedKey][0] && (
                     responseData[key][nestedKey][0].title || 
                     responseData[key][nestedKey][0].name || 
@@ -204,26 +189,21 @@ const ProductList = () => {
         }
       }
       
-      // მყმარკეტის სხვადასხვა API end-point-ებისთვის დამატებითი შემოწმებები
-      // ვარიანტი 1: მთავარ ველში არის პროდუქტების მასივი
       if (responseData && responseData.products && Array.isArray(responseData.products)) {
         console.log(`ნაპოვნია პროდუქტები მთავარ products ველში (${responseData.products.length} ელემენტი)`);
         foundProducts = responseData.products;
       }
       
-      // ვარიანტი 2: items ველში არის პროდუქტების მასივი
       else if (responseData && responseData.items && Array.isArray(responseData.items)) {
         console.log(`ნაპოვნია პროდუქტები items ველში (${responseData.items.length} ელემენტი)`);
         foundProducts = responseData.items;
       }
       
-      // ვარიანტი 3: data.products ველში არის პროდუქტების მასივი
       else if (responseData && responseData.data && responseData.data.products && Array.isArray(responseData.data.products)) {
         console.log(`ნაპოვნია პროდუქტები data.products ველში (${responseData.data.products.length} ელემენტი)`);
         foundProducts = responseData.data.products;
       }
       
-      // ვარიანტი 4: result.products ველში არის პროდუქტების მასივი
       else if (responseData && responseData.result && responseData.result.products && Array.isArray(responseData.result.products)) {
         console.log(`ნაპოვნია პროდუქტები result.products ველში (${responseData.result.products.length} ელემენტი)`);
         foundProducts = responseData.result.products;
@@ -243,7 +223,6 @@ const ProductList = () => {
     }
   };
 
-  // API პასუხის ჩვენების კომპონენტი
   const ResponseDebugView = ({ response }) => {
     if (!response) return null;
     
@@ -281,23 +260,18 @@ const ProductList = () => {
     );
   };
 
-  // მივიღოთ სურათების მასივი პროდუქტიდან
   const getProductImages = (item) => {
-    // ლოგვანოთ სრული ობიექტი დებაგისთვის
     console.log('პროდუქტის სრული ობიექტი:', JSON.stringify(item, null, 2));
     
-    // mymarket.ge-ს API-ს სპეციფიკური სტრუქტურის შემოწმება
     if (item.photos && Array.isArray(item.photos) && item.photos.length > 0) {
       console.log('ნაპოვნია photos მასივი:', item.photos.length);
       return item.photos.map(photo => {
-        // ლოგვანოთ თითოეული ფოტო ობიექტი
         console.log('ფოტო ობიექტი:', photo);
         if (typeof photo === 'string') return photo;
         return photo.url || photo.thumbnailUrl || photo.src || photo.path || photo;
       });
     }
     
-    // შევამოწმოთ images ველი
     if (item.images && Array.isArray(item.images) && item.images.length > 0) {
       console.log('ნაპოვნია images მასივი:', item.images.length);
       return item.images.map(image => {
@@ -306,7 +280,6 @@ const ProductList = () => {
       });
     }
     
-    // შევამოწმოთ მყმარკეტის thumbnail_photo ველი
     if (item.thumbnail_photo) {
       console.log('ნაპოვნია thumbnail_photo:', item.thumbnail_photo);
       const thumbUrl = typeof item.thumbnail_photo === 'string' 
@@ -315,7 +288,6 @@ const ProductList = () => {
       return [thumbUrl];
     }
     
-    // შევამოწმოთ main_photo ან primary_photo ველები
     if (item.main_photo) {
       console.log('ნაპოვნია main_photo:', item.main_photo);
       const mainUrl = typeof item.main_photo === 'string' 
@@ -332,7 +304,6 @@ const ProductList = () => {
       return [primaryUrl];
     }
     
-    // შევამოწმოთ ერთი image ველი
     if (item.image) {
       console.log('ნაპოვნია image ველი:', item.image);
       const imgUrl = typeof item.image === 'string' 
@@ -341,7 +312,6 @@ const ProductList = () => {
       return [imgUrl];
     }
     
-    // შევამოწმოთ thumbnail ველი
     if (item.thumbnail) {
       console.log('ნაპოვნია thumbnail ველი:', item.thumbnail);
       const thumbUrl = typeof item.thumbnail === 'string' 
@@ -350,7 +320,6 @@ const ProductList = () => {
       return [thumbUrl];
     }
     
-    // კიდევ ერთი შემოწმება thumbnail_photos მრავლობითი ველისთვის
     if (item.thumbnail_photos && Array.isArray(item.thumbnail_photos) && item.thumbnail_photos.length > 0) {
       console.log('ნაპოვნია thumbnail_photos მასივი:', item.thumbnail_photos.length);
       return item.thumbnail_photos.map(thumb => {
@@ -359,7 +328,6 @@ const ProductList = () => {
       });
     }
     
-    // შევამოწმოთ ზოგადად ყველა ველი, რომელიც "photo" ან "image" სიტყვას შეიცავს
     const photoKeys = Object.keys(item).filter(key => 
       key.includes('photo') || key.includes('image') || key.includes('picture') || key.includes('thumbnail')
     );
@@ -389,31 +357,24 @@ const ProductList = () => {
       }
     }
     
-    // დავლოგოთ, რომ ვერ ვიპოვეთ ფოტო
     console.log('ვერ მოიძებნა ფოტო პროდუქტში, ID:', item.id);
     console.log('ველები:', Object.keys(item));
     
-    // თუ ვერაფერი ვიპოვეთ, დავაბრუნოთ პლეისჰოლდერი
     return ['https://via.placeholder.com/400x300?text=No+Image'];
   };
 
-  // მივიღოთ მთავარი სურათის URL პროდუქტიდან
   const getThumbnailUrl = (item) => {
     const images = getProductImages(item);
     return images[0];
   };
 
-  // ფორმატირება ფასის
   const formatPrice = (price) => {
     if (!price) return '0 ₾';
     
-    // დავამრგვალოთ 2 ათწილადამდე და გადავაქციოთ სტრინგად
     return parseFloat(price).toFixed(2).replace(/\.00$/, '') + ' ₾';
   };
 
-  // რეიტინგის მიღება
   const getRating = (item) => {
-    // შევამოწმოთ სხვადასხვა შესაძლო ველები სადაც რეიტინგი შეიძლება იყოს
     if (item.rating !== undefined) {
       return item.rating;
     }
@@ -426,29 +387,22 @@ const ProductList = () => {
       return item.rate;
     }
     
-    // თუ ვერაფერი ვიპოვეთ, დავაბრუნოთ შემთხვევითი რეიტინგი დემონსტრაციისთვის
-    return (Math.random() * 3 + 2).toFixed(1); // შემთხვევითი 2-დან 5-მდე
+    return (Math.random() * 3 + 2).toFixed(1);
   };
 
-  // რეიტინგის ვარსკვლავების კომპონენტი
   const RatingStars = ({ rating, size = 16 }) => {
-    // გადავიყვანოთ რეიტინგი რიცხვად
     const numRating = parseFloat(rating) || 0;
-    // მაქსიმალური ვარსკვლავების რაოდენობა
     const maxStars = 5;
     
     return (
       <View style={styles.ratingContainer}>
         {[...Array(maxStars)].map((_, index) => {
-          // სრული ვარსკვლავი
           if (index + 1 <= numRating) {
             return <Ionicons key={index} name="star" size={size} color="#FFD700" />;
           }
-          // ნახევარი ვარსკვლავი
           else if (index + 0.5 <= numRating) {
             return <Ionicons key={index} name="star-half" size={size} color="#FFD700" />;
           }
-          // ცარიელი ვარსკვლავი
           else {
             return <Ionicons key={index} name="star-outline" size={size} color="#FFD700" />;
           }
@@ -458,18 +412,15 @@ const ProductList = () => {
     );
   };
 
-  // გახსნამდე წიქაქთზე დაჭერისას
   const handleProductPress = (item) => {
-    setCurrentImageIndex(0); // დავრესეტოთ სურათის ინდექსი
+    setCurrentImageIndex(0); 
     setSelectedProduct(item);
   };
 
-  // დეტალების დახურვა
   const closeProductDetails = () => {
     setSelectedProduct(null);
   };
 
-  // წინა სურათზე გადასვლა
   const goToPreviousImage = () => {
     if (!selectedProduct) return;
     
@@ -479,7 +430,6 @@ const ProductList = () => {
     );
   };
 
-  // შემდეგ სურათზე გადასვლა
   const goToNextImage = () => {
     if (!selectedProduct) return;
     
@@ -489,7 +439,6 @@ const ProductList = () => {
     );
   };
 
-  // პროდუქტის ბარათის რენდერი
   const renderItem = ({ item }) => (
     <TouchableOpacity 
       style={styles.productItem} 
@@ -526,7 +475,6 @@ const ProductList = () => {
     </TouchableOpacity>
   );
 
-  // პროდუქტის დეტალების რენდერი
   const renderProductDetails = () => {
     if (!selectedProduct) return null;
     
@@ -539,7 +487,6 @@ const ProductList = () => {
         onRequestClose={closeProductDetails}
       >
         <View style={styles.modalContainer}>
-          {/* ზედა პანელი */}
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={closeProductDetails} style={styles.closeButton}>
               <Ionicons name="arrow-back" size={24} color="#333" />
@@ -549,7 +496,6 @@ const ProductList = () => {
           </View>
           
           <ScrollView contentContainerStyle={styles.modalContent}>
-            {/* სურათების სლაიდერი */}
             <View style={styles.imageSliderContainer}>
               <Image 
                 source={{ uri: images[currentImageIndex] }} 
@@ -582,7 +528,6 @@ const ProductList = () => {
               )}
             </View>
             
-            {/* სურათების მინიატურები */}
             {images.length > 1 && (
               <ScrollView 
                 horizontal 
@@ -609,7 +554,6 @@ const ProductList = () => {
               </ScrollView>
             )}
             
-            {/* პროდუქტის ინფორმაცია */}
             <View style={styles.detailInfoContainer}>
               <Text style={styles.detailTitle}>
                 {selectedProduct.title || selectedProduct.name || 'უსახელო პროდუქტი'}
@@ -629,7 +573,6 @@ const ProductList = () => {
                 </View>
               )}
               
-              {/* აღწერა */}
               {selectedProduct.description && (
                 <View style={styles.descriptionContainer}>
                   <Text style={styles.descriptionTitle}>აღწერა:</Text>
@@ -637,7 +580,6 @@ const ProductList = () => {
                 </View>
               )}
               
-              {/* მახასიათებლები - თუ არსებობს */}
               {selectedProduct.attributes && selectedProduct.attributes.length > 0 && (
                 <View style={styles.attributesContainer}>
                   <Text style={styles.attributesTitle}>მახასიათებლები:</Text>
@@ -650,7 +592,6 @@ const ProductList = () => {
                 </View>
               )}
               
-              {/* გამყიდველის ინფო - თუ არსებობს */}
               {(selectedProduct.seller || selectedProduct.user) && (
                 <View style={styles.sellerContainer}>
                   <Text style={styles.sellerTitle}>გამყიდველი:</Text>
@@ -662,7 +603,6 @@ const ProductList = () => {
                 </View>
               )}
               
-              {/* საკონტაქტო ღილაკი */}
               <TouchableOpacity style={styles.contactButton}>
                 <Ionicons name="call" size={18} color="#fff" />
                 <Text style={styles.contactButtonText}>დაკავშირება</Text>
